@@ -42,21 +42,22 @@ type EventCode int32
 
 // EventType型の値
 const (
-	Unknown            EventCode = iota
-	MouseLeftDown                // 左ボタンを押した
-	MouseLeftUp                  // 左ボタン離した
-	MouseRightDown               // 右ボタン押した
-	MouseRightUp                 // 右ボタン離した
-	MouseLeftDragging            // 左ボタンを押したまま移動した
-	MouseRightDragging           // 右ボタンを押したまま移動した
-	MouseLeftDrop                // 左ボタンを押したまま移動して離した
-	MouseRightDrop               // 右ボタンを押したたまま移動して離した
-	MouseMove                    // ボタンを押さずに移動した
-	MouseWheelUp                 // ホイールを上に動かした
-	MouseWheelDown               // ホイールを下に動かした
-	KeyPressOff                  // 離した時
-	KeyPressOn                   // 押した時
-	KeyPressRepeat               // キーを押し続けている時
+	NoEvent            EventCode = iota // 何もなかった場合
+	Unknown                             // 不明のイベント
+	MouseLeftDown                       // 左ボタンを押した
+	MouseLeftUp                         // 左ボタン離した
+	MouseRightDown                      // 右ボタン押した
+	MouseRightUp                        // 右ボタン離した
+	MouseLeftDragging                   // 左ボタンを押したまま移動した
+	MouseRightDragging                  // 右ボタンを押したまま移動した
+	MouseLeftDrop                       // 左ボタンを押したまま移動して離した
+	MouseRightDrop                      // 右ボタンを押したたまま移動して離した
+	MouseMove                           // ボタンを押さずに移動した
+	MouseWheelUp                        // ホイールを上に動かした
+	MouseWheelDown                      // ホイールを下に動かした
+	KeyPressOff                         // 離した時
+	KeyPressOn                          // 押した時
+	KeyPressRepeat                      // キーを押し続けている時
 )
 
 // キーボードからの入力情報です。
@@ -65,8 +66,10 @@ type Keyboard struct {
 	Repeat  uint8    // キーが押しっぱなしなら1（Event.code>0の場合のみ）
 }
 
+// スキャンコード（キーのID)
 type Scancode uint32
 
+// Scancode型の値
 const (
 	K_UNKNOWN = sdl.K_UNKNOWN // "" (no name, empty string)
 

@@ -31,27 +31,27 @@ func (controller *Controller) Init() error {
 
 /*
 Runは入力を受け取るイベントハンドリングループです。
-送信用チャンネルを受け取り、入力があるたびにEvent構造体を送信します。
 */
-func (controller *Controller) Run(evtChan chan<- data.Event) (bool, error) {
-	running := true
-	evt := data.Event{}
+func (controller *Controller) ReceiveEvent() (bool, data.Event, error) {
+	// イベントがなかったという意味のイベント
+	NoEvent := data.Event{
+		Code: data.NoEvent,
+	}
 	for sdlEvent := sdl.PollEvent(); sdlEvent != nil; sdlEvent = sdl.PollEvent() {
 		switch t := sdlEvent.(type) {
 		case *sdl.QuitEvent:
-			running = false
+			return false, NoEvent, nil
 		case *sdl.MouseMotionEvent:
-			evt = controller.motionEvent(t)
+			return true, controller.motionEvent(t), nil
 		case *sdl.MouseButtonEvent:
-			evt = controller.buttonEvent(t)
+			return true, controller.buttonEvent(t), nil
 		case *sdl.MouseWheelEvent:
-			evt = controller.wheelEvent(t)
+			return true, controller.wheelEvent(t), nil
 		case *sdl.KeyboardEvent:
-			evt = controller.keyboardEvent(t)
+			return true, controller.keyboardEvent(t), nil
 		}
-		evtChan <- evt
 	}
-	return running, nil
+	return true, NoEvent, nil
 }
 
 // マウスカーソルが動いた時のイベント処理

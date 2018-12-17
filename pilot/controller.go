@@ -37,20 +37,21 @@ func (controller *Controller) ReceiveEvent() (bool, data.Event, error) {
 	NoEvent := data.Event{
 		Code: data.NoEvent,
 	}
-	for sdlEvent := sdl.PollEvent(); sdlEvent != nil; sdlEvent = sdl.PollEvent() {
-		switch t := sdlEvent.(type) {
-		case *sdl.QuitEvent:
-			return false, NoEvent, nil
-		case *sdl.MouseMotionEvent:
-			return true, controller.motionEvent(t), nil
-		case *sdl.MouseButtonEvent:
-			return true, controller.buttonEvent(t), nil
-		case *sdl.MouseWheelEvent:
-			return true, controller.wheelEvent(t), nil
-		case *sdl.KeyboardEvent:
-			return true, controller.keyboardEvent(t), nil
-		}
+	//for sdlEvent := sdl.PollEvent(); sdlEvent != nil; sdlEvent = sdl.PollEvent() {
+	sdlEvent := sdl.PollEvent()
+	switch t := sdlEvent.(type) {
+	case *sdl.QuitEvent:
+		return false, NoEvent, nil
+	case *sdl.MouseMotionEvent:
+		return true, controller.motionEvent(t), nil
+	case *sdl.MouseButtonEvent:
+		return true, controller.buttonEvent(t), nil
+	case *sdl.MouseWheelEvent:
+		return true, controller.wheelEvent(t), nil
+	case *sdl.KeyboardEvent:
+		return true, controller.keyboardEvent(t), nil
 	}
+	//}
 	return true, NoEvent, nil
 }
 
@@ -150,6 +151,6 @@ func (c *Controller) keyboardEvent(sdlEvent *sdl.KeyboardEvent) data.Event {
 	case sdl.KEYUP: // 離した場合
 		evt.Code = data.KeyPressOff
 	}
-	evt.Keyboard.Keycode = data.Scancode(sdlEvent.Keysym.Scancode)
+	evt.Keyboard.Keycode = data.Scancode(sdlEvent.Keysym.Sym)
 	return evt
 }

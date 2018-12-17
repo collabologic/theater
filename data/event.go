@@ -67,49 +67,48 @@ type Keyboard struct {
 }
 
 // スキャンコード（キーのID)
-type Scancode uint32
+type Scancode sdl.Scancode
 
 // Scancode型の値
 const (
-	K_UNKNOWN = sdl.K_UNKNOWN // "" (no name, empty string)
-
-	K_RETURN     = sdl.K_RETURN     // "Return" (the Enter key (main keyboard))
-	K_ESCAPE     = sdl.K_ESCAPE     // "Escape" (the Esc key)
-	K_BACKSPACE  = sdl.K_BACKSPACE  // "Backspace"
-	K_TAB        = sdl.K_TAB        // "Tab" (the Tab key)
-	K_SPACE      = sdl.K_SPACE      // "Space" (the Space Bar key(s))
-	K_EXCLAIM    = sdl.K_EXCLAIM    // "!"
-	K_QUOTEDBL   = sdl.K_QUOTEDBL   // """
-	K_HASH       = sdl.K_HASH       // "#"
-	K_PERCENT    = sdl.K_PERCENT    // "%"
-	K_DOLLAR     = sdl.K_DOLLAR     // "$"
-	K_AMPERSAND  = sdl.K_AMPERSAND  // "&"
-	K_QUOTE      = sdl.K_QUOTE      // "'"
-	K_LEFTPAREN  = sdl.K_LEFTPAREN  // "("
-	K_RIGHTPAREN = sdl.K_RIGHTPAREN // ")"
-	K_ASTERISK   = sdl.K_ASTERISK   // "*"
-	K_PLUS       = sdl.K_PLUS       // "+"
-	K_COMMA      = sdl.K_COMMA      // ","
-	K_MINUS      = sdl.K_MINUS      // "-"
-	K_PERIOD     = sdl.K_PERIOD     // "."
-	K_SLASH      = sdl.K_SLASH      // "/"
-	K_0          = sdl.K_0          // "0"
-	K_1          = sdl.K_1          // "1"
-	K_2          = sdl.K_2          // "2"
-	K_3          = sdl.K_3          // "3"
-	K_4          = sdl.K_4          // "4"
-	K_5          = sdl.K_5          // "5"
-	K_6          = sdl.K_6          // "6"
-	K_7          = sdl.K_7          // "7"
-	K_8          = sdl.K_8          // "8"
-	K_9          = sdl.K_9          // "9"
-	K_COLON      = sdl.K_COLON      // ":"
-	K_SEMICOLON  = sdl.K_SEMICOLON  // ";"
-	K_LESS       = sdl.K_LESS       // "<"
-	K_EQUALS     = sdl.K_EQUALS     // "="
-	K_GREATER    = sdl.K_GREATER    // ">"
-	K_QUESTION   = sdl.K_QUESTION   // "?"
-	K_AT         = sdl.K_AT         // "@"
+	K_UNKNOWN    sdl.Scancode = sdl.K_UNKNOWN    // "" (no name, empty string)
+	K_RETURN                  = sdl.K_RETURN     // "Return" (the Enter key (main keyboard))
+	K_ESCAPE                  = sdl.K_ESCAPE     // "Escape" (the Esc key)
+	K_BACKSPACE               = sdl.K_BACKSPACE  // "Backspace"
+	K_TAB                     = sdl.K_TAB        // "Tab" (the Tab key)
+	K_SPACE                   = sdl.K_SPACE      // "Space" (the Space Bar key(s))
+	K_EXCLAIM                 = sdl.K_EXCLAIM    // "!"
+	K_QUOTEDBL                = sdl.K_QUOTEDBL   // """
+	K_HASH                    = sdl.K_HASH       // "#"
+	K_PERCENT                 = sdl.K_PERCENT    // "%"
+	K_DOLLAR                  = sdl.K_DOLLAR     // "$"
+	K_AMPERSAND               = sdl.K_AMPERSAND  // "&"
+	K_QUOTE                   = sdl.K_QUOTE      // "'"
+	K_LEFTPAREN               = sdl.K_LEFTPAREN  // "("
+	K_RIGHTPAREN              = sdl.K_RIGHTPAREN // ")"
+	K_ASTERISK                = sdl.K_ASTERISK   // "*"
+	K_PLUS                    = sdl.K_PLUS       // "+"
+	K_COMMA                   = sdl.K_COMMA      // ","
+	K_MINUS                   = sdl.K_MINUS      // "-"
+	K_PERIOD                  = sdl.K_PERIOD     // "."
+	K_SLASH                   = sdl.K_SLASH      // "/"
+	K_0                       = sdl.K_0          // "0"
+	K_1                       = sdl.K_1          // "1"
+	K_2                       = sdl.K_2          // "2"
+	K_3                       = sdl.K_3          // "3"
+	K_4                       = sdl.K_4          // "4"
+	K_5                       = sdl.K_5          // "5"
+	K_6                       = sdl.K_6          // "6"
+	K_7                       = sdl.K_7          // "7"
+	K_8                       = sdl.K_8          // "8"
+	K_9                       = sdl.K_9          // "9"
+	K_COLON                   = sdl.K_COLON      // ":"
+	K_SEMICOLON               = sdl.K_SEMICOLON  // ";"
+	K_LESS                    = sdl.K_LESS       // "<"
+	K_EQUALS                  = sdl.K_EQUALS     // "="
+	K_GREATER                 = sdl.K_GREATER    // ">"
+	K_QUESTION                = sdl.K_QUESTION   // "?"
+	K_AT                      = sdl.K_AT         // "@"
 	/*
 	   Skip uppercase letters
 	*/

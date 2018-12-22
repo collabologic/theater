@@ -23,36 +23,39 @@ const (
 	RightDragOn
 )
 
-func (controller *Controller) Init() error {
+func NewController() *Controller {
+	controller := Controller{}
 	controller.leftDrag = false
 	controller.rightDrag = RightDragOff
-	return nil
+	return &controller
 }
 
 /*
 Runは入力を受け取るイベントハンドリングループです。
 */
 func (controller *Controller) ReceiveEvent() (bool, data.Event, error) {
+	var event data.Event
+
 	// イベントがなかったという意味のイベント
 	NoEvent := data.Event{
 		Code: data.NoEvent,
 	}
-	//for sdlEvent := sdl.PollEvent(); sdlEvent != nil; sdlEvent = sdl.PollEvent() {
+
 	sdlEvent := sdl.PollEvent()
 	switch t := sdlEvent.(type) {
 	case *sdl.QuitEvent:
 		return false, NoEvent, nil
 	case *sdl.MouseMotionEvent:
-		return true, controller.motionEvent(t), nil
+		event = controller.motionEvent(t)
 	case *sdl.MouseButtonEvent:
-		return true, controller.buttonEvent(t), nil
+		event = controller.buttonEvent(t)
 	case *sdl.MouseWheelEvent:
-		return true, controller.wheelEvent(t), nil
+		event = controller.wheelEvent(t)
 	case *sdl.KeyboardEvent:
-		return true, controller.keyboardEvent(t), nil
+		event = controller.keyboardEvent(t)
 	}
-	//}
-	return true, NoEvent, nil
+
+	return true, event, nil
 }
 
 // マウスカーソルが動いた時のイベント処理

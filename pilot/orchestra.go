@@ -78,10 +78,12 @@ func (orchestra *Orchestra) AddEffect(id data.SoundIdentifier, filename string) 
 音声の再生を指示します。
 */
 func (orchestra Orchestra) Play(conduct data.Conduct) error {
-	var s data.Sound
-	var ok bool
+	var (
+		s  data.Sound
+		ok bool
+	)
 	if s, ok = orchestra.Sounds[conduct.ID]; !ok {
-		return errors.New(fmt.Sprintf("No Sound file.:%d", conduct.ID)
+		return errors.New(fmt.Sprintf("No Sound file.:%d", conduct.ID))
 	}
 	switch s.PlayType {
 	case data.BGM:

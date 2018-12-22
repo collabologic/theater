@@ -110,7 +110,8 @@ func (renderer *Renderer) AddSpriteImages(
 /*
 addSpriteForLayerはレイヤーにスプライトを追加・または更新します
 */
-func (renderer *Renderer) AddSpriteForLayer(layerID data.LayerIdentifier, sprite data.Sprite) {
+func (renderer *Renderer) AddSpriteForLayer(sprite data.Sprite) {
+	layerID := sprite.LayerID
 	renderer.Layers[layerID][sprite.Id] = &sprite
 	renderer.LayerUpdated[layerID] = true
 }

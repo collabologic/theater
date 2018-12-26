@@ -20,6 +20,8 @@ Orchestra
 package pilot
 
 import (
+	"fmt"
+	"os"
 	"sync"
 
 	"github.com/collabologic/theater/data"
@@ -40,13 +42,30 @@ type Pilot struct {
 }
 
 /*
+SDLのメインスレッドを有効にします
+*/
+func MainThread(f func()) {
+	sdl.Main(f)
+}
+
+/*
 Pilotを初期化します
 */
-func NewPilot(win *sdl.Window, numEffectChannel int) (*Pilot, error) {
+func NewPilot(title string, numEffectChannel int, flags uint32) (*Pilot, error) {
 	var err error
+	var window *sdl.Window
 	p := Pilot{}
+	sdl.Do(func() {
+		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
+			800, 600, flags)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create window: %s\n", err)
+			return
+		}
+	})
 	p.Controller = NewController()
-	if p.Renderer, err = NewRenderer(win); err != nil {
+	if p.Renderer, err = NewRenderer(window); err != nil {
 		return nil, err
 	}
 	if p.Orchestra, err = NewOrchestra(numEffectChannel); err != nil {
@@ -72,27 +91,13 @@ func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, 
 		}
 	}(spriteCh)
 
-	// 画面描画ループ
-	/*go func() {
-		sdl.Do(func() {
-			for {
-				if !pilot.running {
-					break
-				}
-				if err := pilot.Renderer.DrawLayers(); err != nil {
-					panic(err)
-				}
-			}
-		})
-	}()*/
-
 	// 音声の受信ループ
 	go func(ch <-chan data.Conduct) {
 		for cndct := range ch {
 			pilot.Orchestra.Play(cndct)
 		}
 	}(soundCh)
-	// 入力イベントの送信ループ
+	// メインループ
 	go func(evtch chan<- data.Event) {
 		defer close(evtch)
 
@@ -122,7 +127,9 @@ func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, 
 
 			})
 		}
-
+		sdl.Do(func() {
+			pilot.Renderer.Window.Destroy()
+		})
 	}(eventCh)
 
 	return nil

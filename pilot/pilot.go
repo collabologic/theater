@@ -21,6 +21,7 @@ package pilot
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"sync"
 
@@ -37,8 +38,9 @@ type Pilot struct {
 	*Controller
 	*Renderer
 	*Orchestra
-	running    bool // 処理中か否か
-	mtxRunning sync.Mutex
+	LogicalSize      // 初期ウィンドウまたは論理座標
+	running     bool // 処理中か否か
+	mtxRunning  sync.Mutex
 }
 
 /*
@@ -51,21 +53,22 @@ func MainThread(f func()) {
 /*
 Pilotを初期化します
 */
-func NewPilot(title string, numEffectChannel int, flags uint32) (*Pilot, error) {
+func NewPilot(title string, numEffectChannel int, width, height int32, flags uint32) (*Pilot, error) {
 	var err error
 	var window *sdl.Window
 	p := Pilot{}
+	p.LogicalSize = LogicalSize{width, height}
 	sdl.Do(func() {
 		window, err = sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-			800, 600, flags)
+			height, width, flags)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to create window: %s\n", err)
 			return
 		}
 	})
-	p.Controller = NewController()
-	if p.Renderer, err = NewRenderer(window); err != nil {
+	p.Controller = NewController(window, p.LogicalSize)
+	if p.Renderer, err = NewRenderer(window, p.LogicalSize); err != nil {
 		return nil, err
 	}
 	if p.Orchestra, err = NewOrchestra(numEffectChannel); err != nil {
@@ -133,4 +136,28 @@ func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, 
 	}(eventCh)
 
 	return nil
+}
+
+/*
+論理座標サイズを表す構造体
+*/
+type LogicalSize struct {
+	Width  int32
+	Height int32
+}
+
+// 論理移動量を与えてスクリーン移動量を計算する
+func (ls LogicalSize) screen2logicalMove(win *sdl.Window, mx, my int32) (x, y float64) {
+	sw, sh := win.GetSize()
+	x = (float64(mx) / float64(sw)) * float64(ls.Width)
+	y = (float64(my) / float64(sh)) * float64(ls.Height)
+	return x, y
+}
+
+// 論理座標を与えてスクリーン座標を計算する
+func (ls LogicalSize) screen2logical(win *sdl.Window, lx, ly int32) (x, y int32) {
+	sw, sh := win.GetSize()
+	x = int32(math.Floor((float64(lx) / float64(sw)) * float64(ls.Width)))
+	y = int32(math.Floor((float64(ly) / float64(sh)) * float64(ls.Height)))
+	return x, y
 }

@@ -12,8 +12,10 @@ Controllerは、マウス、キーボード、ジョイパッドなどの機器�
 Controllerの呼び出し前には、sdl.init()が呼ばれている必要があります
 */
 type Controller struct {
-	leftDrag  bool // 左ボタンの押下 true: ドラッグ中　false: 非ドラッグ中
-	rightDrag int8 // 右ボタンの押下　RightDragOff RightDragStart RightDragOn
+	leftDrag    bool        // 左ボタンの押下 true: ドラッグ中　false: 非ドラッグ中
+	rightDrag   int8        // 右ボタンの押下　RightDragOff RightDragStart RightDragOn
+	LogicalSize             // 論理画面サイズ
+	window      *sdl.Window // ウィンドwオブジェクト
 }
 
 // マウス右ボタン状態
@@ -23,10 +25,16 @@ const (
 	RightDragOn
 )
 
-func NewController() *Controller {
+/*
+Controllerを生成する
+*/
+func NewController(win *sdl.Window, ls LogicalSize) *Controller {
+
 	controller := Controller{}
+	controller.window = win
 	controller.leftDrag = false
 	controller.rightDrag = RightDragOff
+	controller.LogicalSize = ls
 	return &controller
 }
 
@@ -76,11 +84,13 @@ func (controller *Controller) motionEvent(sdlEvent *sdl.MouseMotionEvent) data.E
 			evt.Code = data.MouseMove
 		}
 	}
+	x, y := controller.screen2logical(controller.window, sdlEvent.X, sdlEvent.Y)
+	mx, my := controller.screen2logicalMove(controller.window, sdlEvent.XRel, sdlEvent.YRel)
 	evt.Mouse = data.Mouse{
-		X:     sdlEvent.X,
-		Y:     sdlEvent.Y,
-		MoveX: sdlEvent.XRel,
-		MoveY: sdlEvent.YRel,
+		X:     x,
+		Y:     y,
+		MoveX: mx,
+		MoveY: my,
 	}
 	return evt
 }
@@ -118,15 +128,16 @@ func (controller *Controller) buttonEvent(sdlEvent *sdl.MouseButtonEvent) data.E
 	default:
 		evt.Code = data.Unknown
 	}
+	x, y := controller.screen2logical(controller.window, sdlEvent.X, sdlEvent.Y)
 	evt.Mouse = data.Mouse{
-		X: sdlEvent.X,
-		Y: sdlEvent.Y,
+		X: x,
+		Y: y,
 	}
 	return evt
 }
 
 // マウスホイールを動かした時のイベント処理
-func (c *Controller) wheelEvent(sdlEvent *sdl.MouseWheelEvent) data.Event {
+func (controller *Controller) wheelEvent(sdlEvent *sdl.MouseWheelEvent) data.Event {
 	evt := data.Event{}
 	evt.Device = data.DeviceMouse
 	if sdlEvent.Y > 0 {
@@ -140,7 +151,7 @@ func (c *Controller) wheelEvent(sdlEvent *sdl.MouseWheelEvent) data.Event {
 }
 
 // キーボードを動かした時のイベント処理
-func (c *Controller) keyboardEvent(sdlEvent *sdl.KeyboardEvent) data.Event {
+func (controller *Controller) keyboardEvent(sdlEvent *sdl.KeyboardEvent) data.Event {
 	evt := data.Event{}
 	evt.Device = data.DeviceKeyboard
 	switch sdlEvent.Type {

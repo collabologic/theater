@@ -13,6 +13,8 @@ import (
 Rendererは、スプライトデータをチャンネルから受け取って画面に書き出します。
 */
 type Renderer struct {
+	// 論理画面サイズ
+	LogicalSize
 	// レイヤーごとのスプライト
 	Layers map[data.LayerIdentifier]map[data.SpriteIdentifier]*data.Sprite
 	// レイヤーの画像
@@ -30,9 +32,10 @@ type Renderer struct {
 /*
 NewRendererはRendererを初期化します。指定した Windowにsdl.Rendererを追加します。
 }*/
-func NewRenderer(win *sdl.Window) (*Renderer, error) {
+func NewRenderer(win *sdl.Window, ls LogicalSize) (*Renderer, error) {
 	var err error
 	renderer := Renderer{}
+	renderer.LogicalSize = ls
 	renderer.Window = win
 	renderer.SdlRenderer, err = sdl.CreateRenderer(
 		win, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC|sdl.RENDERER_TARGETTEXTURE)
@@ -54,12 +57,11 @@ AddRayerはRendererに指定したIDで描画レイヤーを追加します。
 func (renderer *Renderer) AddLayer(identifier data.LayerIdentifier) error {
 	var err error
 	renderer.Layers[identifier] = make(map[data.SpriteIdentifier]*data.Sprite)
-	w, h := renderer.Window.GetSize()
 	renderer.LayerTextures[identifier], err = renderer.SdlRenderer.CreateTexture(
 		sdl.PIXELFORMAT_RGBA8888,
 		sdl.TEXTUREACCESS_TARGET,
-		w,
-		h,
+		renderer.LogicalSize.Width,
+		renderer.LogicalSize.Height,
 	)
 	if err != nil {
 		return err
@@ -196,7 +198,12 @@ func (renderer *Renderer) DrawLayers() error {
 		if err := renderer.SdlRenderer.SetRenderTarget(nil); err != nil {
 			return err
 		}
-		renderer.SdlRenderer.Copy(renderer.LayerTextures[id], nil, nil)
+		// 書き出し元（論理サイズ）
+		src := sdl.Rect{X: 0, Y: 0, W: renderer.Width, H: renderer.Height}
+		// 書き出し先（スクリーンサイズ）
+		ww, wh := renderer.Window.GetSize()
+		dst := sdl.Rect{X: 0, Y: 0, W: ww, H: wh}
+		renderer.SdlRenderer.Copy(renderer.LayerTextures[id], &src, &dst)
 
 	}
 	renderer.SdlRenderer.Present()

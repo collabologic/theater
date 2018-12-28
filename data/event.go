@@ -325,10 +325,10 @@ const (
 
 // マウスからの入力情報です
 type Mouse struct {
-	X     int32 // 現在座標X
-	Y     int32 // 現在座標Y
-	MoveX int32 // X移動量
-	MoveY int32 // Y移動量
+	X     int32   // 現在座標X
+	Y     int32   // 現在座標Y
+	MoveX float64 // X移動量
+	MoveY float64 // Y移動量
 }
 
 // ジョイパッドからの入力情報です。

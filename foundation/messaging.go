@@ -1,10 +1,13 @@
 package foundation
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 //Observer はメッセージの監視を行うインターフェイスです。
 type Observer interface {
-	Observe(mq *MsgQueue, msg Message, cond MsgSelector, h MsgHandler)
+	Observe(mq *MsgQueue, msgID MsgIdentifier, cond MsgSelector, h MsgHandler)
 }
 
 //TheObserver は埋込で用いられる標準的なObserverです
@@ -19,34 +22,52 @@ func (to TheObserver) Observe(mq *MsgQueue, msgID MsgIdentifier, ms MsgSelector,
 
 //Notifier はメッセージの送信を行うインターフェイスです。
 type Notifier interface {
-	Notify(mq *MsgQueue, msg Message)
+	Notify(msg Message)
 }
 
 //TheNotifier は埋込で用いられる標準的なNotifierです
-type TheNotifier struct{}
+type TheNotifier struct {
+	Mq *MsgQueue
+}
 
 //Notify はMsgQuereにメッセージを送信します
-func (tn TheNotifier) Notify(mq *MsgQueue, msg Message) {
-	mq.SndMsg(msg)
+func (tn TheNotifier) Notify(msg Message) {
+	tn.Mq.SndMsg(msg)
 }
 
 // -------------------------------------------------------------------------------
 
 //MsgQueue はメッセージの仲介を行います
 type MsgQueue struct {
-	qmtx     sync.Mutex                           // キュー更新のロック制御
-	queue    []Message                            // メッセージ配列
-	handlers map[MsgIdentifier]msgSelectorHandler // 監視メッセージテーブル
-	Running  bool                                 // 実行中フラグ
+	qmtx     sync.Mutex                             // キュー更新のロック制御
+	queue    []Message                              // メッセージ配列
+	handlers map[MsgIdentifier][]msgSelectorHandler // 監視メッセージテーブル
+	Running  bool                                   // 実行中フラグ
+}
+
+//NewMsgQueue はメッセージCueを生成します
+func NewMsgQueue() MsgQueue {
+	return MsgQueue{
+		queue:    make([]Message, 0),
+		handlers: make(map[MsgIdentifier][]msgSelectorHandler),
+		Running:  true,
+	}
+}
+
+//elementID はRegisterHanler用MsgSelector関数としてElementIDでのチェックを行う関数ポインタを返却します
+func elementID(eid ElementID) MsgSelector {
+	return func(m *Message) bool {
+		return m.SenderID == eid
+	}
 }
 
 //RegistHandler はメッセージ送信時の通知先に関する情報を登録します
 func (mq *MsgQueue) RegistHandler(ID MsgIdentifier, ms MsgSelector, mh MsgHandler) {
 	msh := msgSelectorHandler{ms, mh}
-	mq.handlers[ID] = msh
+	mq.handlers[ID] = append(mq.handlers[ID], msh)
 }
 
-//SndMsgは メッセージをキューに登録します。
+//SndMsg はメッセージをキューに登録します。
 func (mq *MsgQueue) SndMsg(m Message) {
 	mq.qmtx.Lock()
 	mq.queue = append(mq.queue, m)
@@ -62,14 +83,17 @@ func (mq *MsgQueue) Loop() {
 			mq.queue = mq.queue[1:]
 			mq.qmtx.Unlock()
 
-			h := mq.handlers[m.ID]
-
-			if h.Selector(&m) {
-				go func(m *Message) {
-					h.Handler(m)
-				}(&m)
+			hs, ok := mq.handlers[m.ID]
+			if !ok {
+				panic(fmt.Sprintf("MessageQueue received unregisterd MessageID:%s", m.ID))
 			}
-
+			for _, h := range hs {
+				go func(m *Message, h *msgSelectorHandler) {
+					if h.Selector == nil || h.Selector(m) || h.Handler != nil {
+						h.Handler(m)
+					}
+				}(&m, &h)
+			}
 		}
 	}
 }

@@ -10,6 +10,7 @@ type Pulsar struct {
 	behaviors []Behavior          // 振る舞いを行うエレメントの配列
 	Running   bool                // 動作中か否か
 	BehaveRun func(bs []Behavior) // 振る舞い実行の処理
+	stopCh    chan bool           // 停止用フラグ
 }
 
 //newPulsar は新しいPalsarを生成します
@@ -34,10 +35,15 @@ func AllRun(bs []Behavior) {
 	}
 }
 
+//Stop はPulsarの動作を停止します
+func (p *Pulsar) Stop() {
+	p.stopCh <- true
+}
+
 //Loop は定期的な振る舞いの呼び出しを実行します
 func (p *Pulsar) Loop() {
 	ticker := time.NewTicker(p.interval * time.Microsecond)
-	stopCh := make(chan bool)
+	p.stopCh = make(chan bool)
 	go func(stopCh chan bool) {
 	loop:
 		for p.Running {
@@ -50,5 +56,5 @@ func (p *Pulsar) Loop() {
 			}
 		}
 		close(stopCh)
-	}(stopCh)
+	}(p.stopCh)
 }

@@ -22,7 +22,7 @@ func (to TheObserver) Observe(mq *MsgQueue, msgID MsgIdentifier, ms MsgSelector,
 
 //Notifier はメッセージの送信を行うインターフェイスです。
 type Notifier interface {
-	Notify(msg Message)
+	Notify(msg Msg)
 }
 
 //TheNotifier は埋込で用いられる標準的なNotifierです
@@ -31,7 +31,7 @@ type TheNotifier struct {
 }
 
 //Notify はMsgQuereにメッセージを送信します
-func (tn TheNotifier) Notify(msg Message) {
+func (tn TheNotifier) Notify(msg Msg) {
 	tn.Mq.SndMsg(msg)
 }
 
@@ -40,7 +40,7 @@ func (tn TheNotifier) Notify(msg Message) {
 //MsgQueue はメッセージの仲介を行います
 type MsgQueue struct {
 	qmtx     sync.Mutex                             // キュー更新のロック制御
-	queue    []Message                              // メッセージ配列
+	queue    []Msg                                  // メッセージ配列
 	handlers map[MsgIdentifier][]msgSelectorHandler // 監視メッセージテーブル
 	Running  bool                                   // 実行中フラグ
 }
@@ -48,7 +48,7 @@ type MsgQueue struct {
 //NewMsgQueue はメッセージCueを生成します
 func NewMsgQueue() MsgQueue {
 	return MsgQueue{
-		queue:    make([]Message, 0),
+		queue:    make([]Msg, 0),
 		handlers: make(map[MsgIdentifier][]msgSelectorHandler),
 		Running:  true,
 	}
@@ -56,7 +56,7 @@ func NewMsgQueue() MsgQueue {
 
 //elementID はRegisterHanler用MsgSelector関数としてElementIDでのチェックを行う関数ポインタを返却します
 func elementID(eid ElementID) MsgSelector {
-	return func(m *Message) bool {
+	return func(m *Msg) bool {
 		return m.SenderID == eid
 	}
 }
@@ -68,7 +68,7 @@ func (mq *MsgQueue) RegistHandler(ID MsgIdentifier, ms MsgSelector, mh MsgHandle
 }
 
 //SndMsg はメッセージをキューに登録します。
-func (mq *MsgQueue) SndMsg(m Message) {
+func (mq *MsgQueue) SndMsg(m Msg) {
 	mq.qmtx.Lock()
 	mq.queue = append(mq.queue, m)
 	mq.qmtx.Unlock()
@@ -88,7 +88,7 @@ func (mq *MsgQueue) Loop() {
 				panic(fmt.Sprintf("MessageQueue received unregisterd MessageID:%s", m.ID))
 			}
 			for _, h := range hs {
-				go func(m *Message, h *msgSelectorHandler) {
+				go func(m *Msg, h *msgSelectorHandler) {
 					if h.Selector == nil || h.Selector(m) || h.Handler != nil {
 						h.Handler(m)
 					}
@@ -108,31 +108,16 @@ type msgSelectorHandler struct {
 
 // -------------------------------------------------------------------------------
 
-//Message はエレメント間の通信データを表します。
-type Message struct {
+//Msg はエレメント間の通信データを表します。
+type Msg struct {
 	ID       MsgIdentifier
 	SenderID ElementID
-	Sender   *Notifier
+	Sender   Notifier
 	Params   MsgParams
 }
 
-//MsgParams メッセージのパラメータを保存する
-type MsgParams map[string]interface{}
-
-//getInt は指定のパラメータをint64で返却することを試みます
-func (mps MsgParams) getInt(key string) int64 {
-	return mps[key].(int64)
-}
-
-//getFloat は指定のパラメータをfloat64で返却することを試みます
-func (mps MsgParams) getFloat(key string) float64 {
-	return mps[key].(float64)
-}
-
-//getString は指定のパラメータをstringで返却することを試みます
-func (mps MsgParams) getString(key string) string {
-	return mps[key].(string)
-}
+//MsgParams メッセージのパラメータを保存します（キャストして取り扱うこと）
+type MsgParams interface{}
 
 // -------------------------------------------------------------------------------
 
@@ -140,7 +125,7 @@ func (mps MsgParams) getString(key string) string {
 type MsgIdentifier string
 
 //MsgSelector メッセージを絞り込むための条件関数へのポインタです
-type MsgSelector func(m *Message) bool
+type MsgSelector func(m *Msg) bool
 
 //MsgHandler は、メッセージ受信次に実行するハンドラー関数のポインタです
-type MsgHandler func(m *Message)
+type MsgHandler func(m *Msg)

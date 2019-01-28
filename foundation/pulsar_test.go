@@ -14,10 +14,10 @@ type TestElement3 struct {
 
 func (te *TestElement3) send() {
 	nte := Notifier(te)
-	te.Notify(Message{
+	te.Notify(Msg{
 		TESTMESG,
 		te.ID,
-		&nte,
+		nte,
 		nil,
 	})
 }
@@ -29,7 +29,7 @@ type TestElement4 struct {
 	Running bool
 }
 
-func (te *TestElement4) receive(m *Message) {
+func (te *TestElement4) receive(m *Msg) {
 	fmt.Println("RECEIVE!")
 	fmt.Println(m)
 	te.Running = false
@@ -59,9 +59,9 @@ func Test_Pulsar_1(t *testing.T) {
 	mq := NewMsgQueue()
 	te3.Mq = &mq
 	te4.Mq = &mq
-	p := NewPulsar(100)
+	p := NewPulsar(50)
 	p.RegistBehavior(&te5)
-	te4.Observe(&mq, TESTMESG, elementID(te3.ID), func(m *Message) { te4.receive(m) })
+	te4.Observe(&mq, TESTMESG, elementID(te3.ID), func(m *Msg) { te4.receive(m) })
 	te4.Running = true
 	go mq.Loop()
 	go p.Loop()

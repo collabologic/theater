@@ -13,10 +13,10 @@ type TestElement1 struct {
 
 func (te *TestElement1) send() {
 	nte := Notifier(te)
-	te.Notify(Message{
+	te.Notify(Msg{
 		TESTMESG,
 		te.ID,
-		&nte,
+		nte,
 		nil,
 	})
 }
@@ -28,7 +28,7 @@ type TestElement2 struct {
 	Running bool
 }
 
-func (te *TestElement2) receive(m *Message) {
+func (te *TestElement2) receive(m *Msg) {
 	fmt.Println("RECEIVE!")
 	fmt.Println(m)
 	te.Running = false
@@ -45,7 +45,7 @@ func Test_Messaging_1(t *testing.T) {
 	mq := NewMsgQueue()
 	te1.Mq = &mq
 	te2.Mq = &mq
-	te2.Observe(&mq, TESTMESG, elementID(te1.ID), func(m *Message) { te2.receive(m) })
+	te2.Observe(&mq, TESTMESG, elementID(te1.ID), func(m *Msg) { te2.receive(m) })
 	te2.Running = true
 	go mq.Loop()
 	te1.send()

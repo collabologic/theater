@@ -86,7 +86,6 @@ RunはPilotを稼働させます。
 具体的には、controler, renderer, orchestraを生成し、それぞれの送受信ループをgoroutinとして走らせます。
 */
 func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, soundCh <-chan data.Conduct) error {
-
 	// スプライトの受信ループ
 	go func(ch <-chan data.Sprite) {
 		for sprt := range ch {
@@ -112,7 +111,6 @@ func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, 
 				if !pilot.running {
 					return
 				}
-
 				running, res, err := pilot.Controller.ReceiveEvent()
 				if err != nil {
 					panic(err)
@@ -127,14 +125,12 @@ func (pilot *Pilot) Run(eventCh chan<- data.Event, spriteCh <-chan data.Sprite, 
 				} else if res.Code != data.NoEvent {
 					evtch <- res
 				}
-
 			})
 		}
 		sdl.Do(func() {
 			pilot.Renderer.Window.Destroy()
 		})
 	}(eventCh)
-
 	return nil
 }
 

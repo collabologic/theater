@@ -1,7 +1,6 @@
 package foundation
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -82,17 +81,17 @@ func (mq *MsgQueue) Loop() {
 			m := mq.queue[0]
 			mq.queue = mq.queue[1:]
 			mq.qmtx.Unlock()
-
 			hs, ok := mq.handlers[m.ID]
 			if !ok {
-				panic(fmt.Sprintf("MessageQueue received unregisterd MessageID:%s", m.ID))
+				//panic(fmt.Sprintf("MessageQueue received unregisterd MessageID:%s", m.ID))
+				continue
 			}
 			for _, h := range hs {
-				go func(m *Msg, h *msgSelectorHandler) {
-					if h.Selector == nil || h.Selector(m) || h.Handler != nil {
+				if (h.Selector == nil || h.Selector(&m)) && h.Handler != nil {
+					go func(m *Msg, h *msgSelectorHandler) {
 						h.Handler(m)
-					}
-				}(&m, &h)
+					}(&m, &h)
+				}
 			}
 		}
 	}

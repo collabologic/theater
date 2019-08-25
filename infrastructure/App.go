@@ -1,8 +1,6 @@
 package infrastructure
 
 import (
-	"time"
-
 	"github.com/collabologic/theater/foundation"
 	"github.com/collabologic/theater/pilot"
 )
@@ -23,22 +21,27 @@ type TheApp struct {
 	scenes         map[SceneID]*Scene
 	currentSceneID SceneID
 	//spaces: map[SpaceID]Space
-	mq              foundation.MsgQueue
-	componentPulsar foundation.Pulsar
-	spacePulsar     foundation.Pulsar
-	pilot           *pilot.Pilot
+	Mq              *foundation.MsgQueue
+	componentPulsar *foundation.Pulsar
+	spacePulsar     *foundation.Pulsar
+	Pilot           *pilot.Pilot
 }
 
 //NewTheApp は新規に新しいAppを作成します
-func NewTheApp(mq *foundation.MsgQueue, cd time.Duration, sd time.Duration) TheApp {
+func NewTheApp(mq *foundation.MsgQueue, cp *foundation.Pulsar, sp *foundation.Pulsar) TheApp {
 	//TODO: SceneとSpaceの定義
 	return TheApp{
 		scenes: make(map[SceneID]*Scene, 0),
-		//spaces: make([]Spaces),
-		mq:              foundation.NewMsgQueue(),
-		componentPulsar: foundation.NewPulsar(cd),
-		spacePulsar:     foundation.NewPulsar(sd),
+		//spaces: make([]Spaces)
+		Mq:              mq,
+		componentPulsar: cp,
+		spacePulsar:     sp,
 	}
+}
+
+//SetPilot はAppにPilotへのポインタをセットし、画面表示に利用します
+func (ta *TheApp) SetPilot(pilot *pilot.Pilot) {
+	ta.Pilot = pilot
 }
 
 //AppendScene はAppにSceneを追加します
